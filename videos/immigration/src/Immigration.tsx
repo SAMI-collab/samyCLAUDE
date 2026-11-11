@@ -1,5 +1,5 @@
 import React from 'react';
-import {AbsoluteFill, Sequence, interpolate, spring, useCurrentFrame, useVideoConfig, Easing} from 'remotion';
+import {Audio, staticFile, AbsoluteFill, Sequence, interpolate, spring, useCurrentFrame, useVideoConfig, Easing} from 'remotion';
 
 const C = {nuit: '#0B1220', sable: '#F2E8D5', corail: '#FF6B4A', turquoise: '#2EC4B6'};
 const FONT = 'Inter, "Helvetica Neue", Arial, sans-serif';
@@ -17,11 +17,11 @@ for (let x = 0; x < 1000; x += 18)
   for (let y = 0; y < 500; y += 18)
     if (CONT.some(([cx, cy, rx, ry]) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1)) DOTS.push([x, y]);
 
+const CA: [number, number] = [210, 120];
 const ROUTES: [number, number, number, number][] = [
-  [300, 380, 500, 130], [520, 330, 500, 130], [640, 260, 500, 130], [700, 150, 220, 150],
-  [520, 250, 220, 150], [780, 270, 850, 390], [180, 230, 220, 150], [520, 330, 640, 260],
-  [700, 150, 850, 390], [300, 350, 500, 130], [640, 260, 220, 150], [500, 130, 850, 390],
-];
+  [500, 130], [520, 330], [640, 260], [700, 150], [780, 270], [850, 390],
+  [300, 380], [180, 230], [560, 230], [740, 120], [480, 200], [620, 300],
+].map(([x, y]) => [x, y, CA[0], CA[1]] as [number, number, number, number]);
 
 const MAP_W = 1080, MAP_H = 540, MAP_Y = 690;
 
@@ -51,83 +51,91 @@ const Text: React.FC<{children: React.ReactNode; size: number; color?: string; w
     <div style={{fontFamily: FONT, fontSize: size, color, fontWeight: weight, textAlign: 'center', lineHeight: 1.15, padding: '0 80px', ...style}}>{children}</div>
   );
 
-// Scène 1 : le départ
+
+const RED = '#E63946';
+const Leaf: React.FC<{size: number; style?: React.CSSProperties}> = ({size, style}) => (
+  <svg viewBox="-50 -55 100 110" width={size} height={size} style={style}>
+    <path fill={RED} d="M0,-50 L8,-32 L18,-38 L14,-14 L30,-24 L28,-14 L46,-16 L38,0 L46,6 L22,22 L26,32 L4,28 L4,52 L-4,52 L-4,28 L-26,32 L-22,22 L-46,6 L-38,0 L-46,-16 L-28,-14 L-30,-24 L-14,-14 L-18,-38 L-8,-32 Z" />
+  </svg>
+);
+
+// Scène 1 : accroche
 const Scene1 = () => {
   const frame = useCurrentFrame(), {fps} = useVideoConfig();
-  const s = spring({frame: frame - 6, fps, config: {damping: 12}});
-  const t = interpolate(frame, [20, 40], [0, 1], clamp);
+  const s = spring({frame: frame - 4, fps, config: {damping: 12}});
+  const t = interpolate(frame, [15, 35], [0, 1], clamp);
   const out = interpolate(frame, [80, 90], [1, 0], clamp);
   return (
     <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', opacity: out}}>
-      {[0, 1].map((k) => {
-        const w = ((frame + k * 30) % 60) / 60;
-        return <div key={k} style={{position: 'absolute', width: 40 + w * 260, height: 40 + w * 260, borderRadius: '50%', border: `3px solid ${C.corail}`, opacity: (1 - w) * s * 0.7}} />;
-      })}
-      <div style={{width: 40, height: 40, borderRadius: '50%', background: C.corail, transform: `scale(${s})`, boxShadow: `0 0 60px ${C.corail}`}} />
-      <Text size={120} weight={800} style={{position: 'absolute', top: 1120, opacity: t, transform: `translateY(${(1 - t) * 30}px)`}}>Partir.</Text>
-    </AbsoluteFill>
-  );
-};
-
-// Scène 2 : les trajets
-const Scene2 = () => {
-  const frame = useCurrentFrame();
-  const zoom = interpolate(frame, [0, 40], [3, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
-  const words = 'Chaque année, des millions de personnes changent de pays.'.split(' ');
-  return (
-    <AbsoluteFill>
-      <WorldMap opacity={1} routes={1} scale={zoom} />
-      <Text size={70} weight={700} style={{position: 'absolute', top: 300}}>
-        {words.map((w, i) => (
-          <span key={i} style={{opacity: interpolate(frame, [20 + i * 3, 26 + i * 3], [0, 1], clamp)}}>{w} </span>
-        ))}
+      <Leaf size={300} style={{transform: `scale(${s}) rotate(${(1 - s) * -30}deg)`, filter: `drop-shadow(0 0 40px ${RED})`}} />
+      <Text size={110} weight={800} style={{position: 'absolute', top: 1200, opacity: t, transform: `translateY(${(1 - t) * 30}px)`}}>
+        Vous rêvez du <span style={{color: RED}}>Canada</span> ?
       </Text>
     </AbsoluteFill>
   );
 };
 
-// Scène 3 : le chiffre
-const Scene3 = () => {
-  const frame = useCurrentFrame(), {fps} = useVideoConfig();
-  const n = Math.round(interpolate(frame, [5, 50], [0, 281], {...clamp, easing: Easing.out(Easing.cubic)}));
-  const bump = 1 + 0.08 * spring({frame: frame - 50, fps, config: {damping: 10}}) * interpolate(frame, [50, 70], [1, 0], clamp);
-  const sub = interpolate(frame, [60, 75], [0, 1], clamp);
+// Scène 2 : Entrée express
+const Scene2 = () => {
+  const frame = useCurrentFrame();
+  const zoom = interpolate(frame, [0, 40], [2.2, 1], {...clamp, easing: Easing.inOut(Easing.cubic)});
+  const words = 'Le système fédéral pour immigrer comme travailleur qualifié.'.split(' ');
   return (
-    <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center'}}>
-      <WorldMap opacity={0.1} routes={0} />
-      <Text size={160} weight={800} color={C.turquoise} style={{transform: `scale(${bump})`}}>{n} millions</Text>
-      <Text size={60} style={{marginTop: 30, opacity: sub}}>de migrants internationaux dans le monde</Text>
-      <Text size={32} style={{marginTop: 40, opacity: sub * 0.6}}>Source : ONU / OIM, 2020</Text>
+    <AbsoluteFill>
+      <Text size={110} weight={800} color={C.turquoise} style={{position: 'absolute', top: 260, width: '100%', boxSizing: 'border-box'}}>Entrée express</Text>
+      <Text size={60} weight={600} style={{position: 'absolute', top: 420, width: '100%', boxSizing: 'border-box'}}>
+        {words.map((w, i) => <span key={i} style={{opacity: interpolate(frame, [10 + i * 4, 16 + i * 4], [0, 1], clamp)}}>{w} </span>)}
+      </Text>
+      <WorldMap opacity={1} routes={1} scale={zoom} />
     </AbsoluteFill>
   );
 };
 
-// Scène 4 : des visages
-const PALETTE = [C.corail, C.turquoise, C.sable];
-const Person: React.FC<{color: string; s: number; kid?: boolean}> = ({color, s, kid}) => (
-  <svg viewBox="0 0 100 140" width={kid ? 150 : 200} height={kid ? 210 : 280} style={{transform: `scale(${s})`, alignSelf: 'flex-end'}}>
-    <circle cx={50} cy={32} r={24} fill={color} />
-    <path d="M10,140 Q10,66 50,66 Q90,66 90,140 Z" fill={color} />
-  </svg>
-);
+// Scène 3 : trois programmes
+const Scene3 = () => {
+  const frame = useCurrentFrame(), {fps} = useVideoConfig();
+  const items: [string, string, string][] = [
+    ['1', 'Travailleurs qualifiés (fédéral)', C.corail],
+    ['2', 'Métiers spécialisés (fédéral)', C.turquoise],
+    ['3', 'Expérience canadienne', C.sable],
+  ];
+  return (
+    <AbsoluteFill style={{alignItems: 'center', paddingTop: 330}}>
+      <Text size={84} weight={800}>3 programmes</Text>
+      {items.map(([n, label, col], i) => {
+        const s = spring({frame: frame - 15 - i * 25, fps, config: {damping: 16}});
+        return (
+          <div key={n} style={{marginTop: 60, width: 880, display: 'flex', alignItems: 'center', gap: 40, padding: '44px 50px', borderRadius: 32,
+            background: 'rgba(242,232,213,0.07)', border: `3px solid ${col}`, opacity: s, transform: `translateX(${(1 - s) * 300}px)`}}>
+            <div style={{fontFamily: FONT, fontSize: 90, fontWeight: 800, color: col}}>{n}</div>
+            <div style={{fontFamily: FONT, fontSize: 52, fontWeight: 700, color: C.sable}}>{label}</div>
+          </div>
+        );
+      })}
+    </AbsoluteFill>
+  );
+};
+
+// Scène 4 : les étapes
 const Scene4 = () => {
   const frame = useCurrentFrame(), {fps} = useVideoConfig();
-  const lines = ['Des étudiants.', 'Des soignants.', 'Des familles.'];
+  const steps = ['Créez votre profil', 'Obtenez votre score CRS', 'Recevez une invitation', 'Résidence permanente'];
   const out = interpolate(frame, [125, 135], [1, 0], clamp);
+  const line = interpolate(frame, [5, 100], [0, 1], clamp);
   return (
-    <AbsoluteFill style={{alignItems: 'center', opacity: out}}>
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 240px)', gap: 30, marginTop: 300}}>
-        {Array.from({length: 9}).map((_, i) => (
-          <div key={i} style={{display: 'flex', justifyContent: 'center', height: 290}}>
-            <Person color={PALETTE[i % 3]} kid={i === 4 || i === 6} s={spring({frame: frame - i * 4, fps, config: {damping: 14}})} />
+    <AbsoluteFill style={{opacity: out, paddingTop: 360, paddingLeft: 140}}>
+      <div style={{position: 'absolute', left: 179, top: 420, width: 6, height: 900 * line, background: C.turquoise}} />
+      {steps.map((st, i) => {
+        const s = spring({frame: frame - 5 - i * 28, fps, config: {damping: 14}});
+        const last = i === steps.length - 1;
+        return (
+          <div key={i} style={{display: 'flex', alignItems: 'center', gap: 50, height: 300, opacity: s}}>
+            <div style={{width: 84, height: 84, borderRadius: '50%', background: last ? RED : C.turquoise, transform: `scale(${s})`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FONT, fontSize: 44, fontWeight: 800, color: C.nuit}}>{i + 1}</div>
+            <div style={{fontFamily: FONT, fontSize: 60, fontWeight: 700, color: last ? RED : C.sable, maxWidth: 700}}>{st}</div>
           </div>
-        ))}
-      </div>
-      <div style={{marginTop: 80}}>
-        {lines.map((l, i) => (
-          <Text key={i} size={64} weight={700} style={{opacity: interpolate(frame, [20 + i * 25, 35 + i * 25], [0, 1], clamp), marginBottom: 16}}>{l}</Text>
-        ))}
-      </div>
+        );
+      })}
     </AbsoluteFill>
   );
 };
@@ -135,20 +143,20 @@ const Scene4 = () => {
 // Scène 5 : conclusion
 const Scene5 = () => {
   const frame = useCurrentFrame(), {fps} = useVideoConfig();
-  const map = interpolate(frame, [0, 20], [0, 1], clamp);
-  const s = spring({frame: frame - 15, fps, config: {damping: 200}});
+  const s = spring({frame: frame - 3, fps, config: {damping: 200}});
   const fade = interpolate(frame, [65, 75], [1, 0], clamp);
   return (
-    <AbsoluteFill style={{opacity: fade}}>
-      <WorldMap opacity={map * 0.5} routes={0} />
-      <AbsoluteFill style={{justifyContent: 'center'}}>
-        <Text size={80} weight={800} style={{opacity: s, transform: `translateY(${(1 - s) * 40}px)`, marginTop: -500}}>
-          Derrière chaque trajet,<br /><span style={{color: C.corail}}>une histoire.</span>
-        </Text>
-      </AbsoluteFill>
+    <AbsoluteFill style={{opacity: fade, justifyContent: 'center', alignItems: 'center'}}>
+      <Leaf size={200} style={{transform: `scale(${s})`, marginBottom: 60}} />
+      <Text size={96} weight={800} style={{opacity: s, transform: `translateY(${(1 - s) * 40}px)`}}>
+        Votre avenir<br /><span style={{color: RED}}>commence ici.</span>
+      </Text>
+      <Text size={40} style={{marginTop: 50, opacity: s * 0.7}}>canada.ca/entree-express</Text>
     </AbsoluteFill>
   );
 };
+
+const VO: [number, string][] = [[3, 'v1.wav'], [93, 'v2.wav'], [242, 'v3.wav'], [393, 'v4.wav'], [528, 'v5.wav']];
 
 export const Immigration = () => (
   <AbsoluteFill style={{background: C.nuit}}>
@@ -157,5 +165,6 @@ export const Immigration = () => (
     <Sequence from={240} durationInFrames={150}><Scene3 /></Sequence>
     <Sequence from={390} durationInFrames={135}><Scene4 /></Sequence>
     <Sequence from={525} durationInFrames={75}><Scene5 /></Sequence>
+    {VO.map(([f, file]) => <Sequence key={file} from={f}><Audio src={staticFile(file)} /></Sequence>)}
   </AbsoluteFill>
 );

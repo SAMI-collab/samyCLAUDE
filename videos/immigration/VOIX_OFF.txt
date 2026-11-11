@@ -1,0 +1,6 @@
+Texte de la voix off (20 s) - à coller dans ElevenLabs
+0,1 s  : Vous rêvez du Canada ?
+3,1 s  : Entrée express est le système fédéral pour immigrer comme travailleur qualifié.
+8,1 s  : Trois programmes : travailleurs qualifiés, métiers spécialisés, expérience canadienne.
+13,1 s : Créez votre profil, obtenez votre score, recevez une invitation.
+17,6 s : Votre avenir commence ici.
