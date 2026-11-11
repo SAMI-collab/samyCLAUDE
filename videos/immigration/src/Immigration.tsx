@@ -156,7 +156,7 @@ const Scene5 = () => {
   );
 };
 
-const VO: [number, string][] = [[3, 'v1.wav'], [93, 'v2.wav'], [242, 'v3.wav'], [393, 'v4.wav'], [528, 'v5.wav']];
+const VO: [number, string][] = [[3, 'e1.wav'], [93, 'e2.wav'], [242, 'e3.wav'], [393, 'e4.wav']];
 
 export const Immigration = () => (
   <AbsoluteFill style={{background: C.nuit}}>
