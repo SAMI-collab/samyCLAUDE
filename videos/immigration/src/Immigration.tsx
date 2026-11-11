@@ -1,9 +1,9 @@
 import React from 'react';
 import {Audio, staticFile, AbsoluteFill, Sequence, interpolate, spring, useCurrentFrame, useVideoConfig, Easing} from 'remotion';
 
-const C = {nuit: '#0B1220', sable: '#F2E8D5', corail: '#FF6B4A', turquoise: '#2EC4B6'};
-const FONT = 'Inter, "Helvetica Neue", Arial, sans-serif';
-const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
+export const C = {nuit: '#0B1220', sable: '#F2E8D5', corail: '#FF6B4A', turquoise: '#2EC4B6'};
+export const FONT = 'Inter, "Helvetica Neue", Arial, sans-serif';
+export const clamp = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
 // Carte stylisée : continents approximés par des ellipses (repère 1000x500)
 const CONT: [number, number, number, number][] = [
@@ -25,7 +25,7 @@ const ROUTES: [number, number, number, number][] = [
 
 const MAP_W = 1080, MAP_H = 540, MAP_Y = 690;
 
-const WorldMap: React.FC<{opacity: number; routes: number; scale?: number}> = ({opacity, routes, scale = 1}) => {
+export const WorldMap: React.FC<{opacity: number; routes: number; scale?: number}> = ({opacity, routes, scale = 1}) => {
   const frame = useCurrentFrame();
   return (
     <svg viewBox="0 0 1000 500" style={{position: 'absolute', left: 0, top: MAP_Y, width: MAP_W, height: MAP_H, transform: `scale(${scale})`, opacity}}>
@@ -46,14 +46,14 @@ const WorldMap: React.FC<{opacity: number; routes: number; scale?: number}> = ({
   );
 };
 
-const Text: React.FC<{children: React.ReactNode; size: number; color?: string; weight?: number; style?: React.CSSProperties}> =
+export const Text: React.FC<{children: React.ReactNode; size: number; color?: string; weight?: number; style?: React.CSSProperties}> =
   ({children, size, color = C.sable, weight = 500, style}) => (
     <div style={{fontFamily: FONT, fontSize: size, color, fontWeight: weight, textAlign: 'center', lineHeight: 1.15, padding: '0 80px', ...style}}>{children}</div>
   );
 
 
-const RED = '#E63946';
-const Leaf: React.FC<{size: number; style?: React.CSSProperties}> = ({size, style}) => (
+export const RED = '#E63946';
+export const Leaf: React.FC<{size: number; style?: React.CSSProperties}> = ({size, style}) => (
   <svg viewBox="-50 -55 100 110" width={size} height={size} style={style}>
     <path fill={RED} d="M0,-50 L8,-32 L18,-38 L14,-14 L30,-24 L28,-14 L46,-16 L38,0 L46,6 L22,22 L26,32 L4,28 L4,52 L-4,52 L-4,28 L-26,32 L-22,22 L-46,6 L-38,0 L-46,-16 L-28,-14 L-30,-24 L-14,-14 L-18,-38 L-8,-32 Z" />
   </svg>
