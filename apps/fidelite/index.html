@@ -1,0 +1,217 @@
+<title>Carte Fidélité Mobile</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout : une colonne façon comptoir. En haut la caisse (recherche + tampon), puis les clients à relancer, puis la liste. */
+:root {
+  --bg: #F3F5F9; --surface: #FFFFFF; --fg: #121826; --muted: #5B6578; --line: #DCE1EA;
+  --accent: #1F5BFF; --accent-fg: #FFFFFF; --stamp: #1F5BFF; --stamp-off: #E3E8F2;
+  --ok: #0E8F5B; --warn: #C2410C; --warn-bg: #FFF1E8;
+  --display: "Space Grotesk", "Segoe UI", Arial, sans-serif; --body: Inter, "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0D1220; --surface: #151C2E; --fg: #EEF1F7; --muted: #98A2B8; --line: #26304A;
+  --accent: #5B8CFF; --accent-fg: #0D1220; --stamp: #5B8CFF; --stamp-off: #222B42;
+  --ok: #34D399; --warn: #FB923C; --warn-bg: #2A1C14; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0D1220; --surface: #151C2E; --fg: #EEF1F7; --muted: #98A2B8; --line: #26304A;
+  --accent: #5B8CFF; --accent-fg: #0D1220; --stamp: #5B8CFF; --stamp-off: #222B42;
+  --ok: #34D399; --warn: #FB923C; --warn-bg: #2A1C14; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5 }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 24px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 24px }
+header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap }
+h1 { font-family: var(--display); font-size: 28px; margin: 0; text-wrap: balance }
+h2 { font-family: var(--display); font-size: 18px; margin: 0 }
+.sub { color: var(--muted); margin: 2px 0 0 }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px }
+.stat b { display: block; font-family: var(--display); font-size: 24px; font-variant-numeric: tabular-nums }
+.stat span { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px }
+.row { display: flex; gap: 10px; flex-wrap: wrap }
+input { flex: 1 1 180px; min-width: 0; font: inherit; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg) }
+button { font: inherit; font-weight: 600; border-radius: 10px; padding: 11px 16px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent) }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+button:disabled { opacity: .5; cursor: default }
+.client { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 14px 0; border-top: 1px solid var(--line) }
+.client:first-child { border-top: 0 }
+.who { min-width: 0; flex: 1 1 200px }
+.who b { display: block }
+.who small { color: var(--muted); font-variant-numeric: tabular-nums }
+.stamps { display: flex; gap: 5px; flex-wrap: wrap }
+.dot { width: 22px; height: 22px; border-radius: 50%; background: var(--stamp-off); display: grid; place-items: center; font-size: 11px; color: var(--accent-fg) }
+.dot.on { background: var(--stamp) }
+.dot.gift { border: 2px dashed var(--stamp); background: transparent; color: var(--stamp) }
+.actions { display: flex; gap: 8px; flex-wrap: wrap }
+.pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--warn-bg); color: var(--warn) }
+.pill.ok { background: transparent; color: var(--ok); border: 1px solid var(--ok) }
+.relance { background: var(--warn-bg); border-color: transparent }
+.msg { width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); resize: vertical; min-height: 70px }
+.empty { color: var(--muted); padding: 10px 0 }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600 }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px }
+.settings label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted) }
+a.wa { color: var(--accent); font-weight: 600 }
+@media (max-width: 480px) { .stats { grid-template-columns: 1fr 1fr 1fr } .stat b { font-size: 20px } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="shopName">Ma boutique mobile</h1>
+      <p class="sub" id="rule">10 achats = 1 cadeau</p>
+    </div>
+    <button id="toggleSettings" type="button">Réglages</button>
+  </header>
+
+  <section class="panel" id="settingsPanel" hidden>
+    <h2>Réglages de la carte</h2>
+    <div class="settings">
+      <label>Nom du magasin<input id="setName" type="text"></label>
+      <label>Achats pour un cadeau<input id="setGoal" type="number" min="3" max="20"></label>
+      <label>Cadeau offert<input id="setGift" type="text"></label>
+      <label>Relancer après (jours)<input id="setDays" type="number" min="7" max="180"></label>
+    </div>
+    <div class="row"><button class="primary" id="saveSettings" type="button">Enregistrer les réglages</button></div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b id="sClients">0</b><span>Clients</span></div>
+    <div class="stat"><b id="sGifts">0</b><span>Cadeaux donnés</span></div>
+    <div class="stat"><b id="sRelance">0</b><span>À relancer</span></div>
+  </div>
+
+  <section class="panel">
+    <h2>Passage en caisse</h2>
+    <form class="row" id="addForm">
+      <input id="fName" type="text" placeholder="Nom du client" autocomplete="off">
+      <input id="fTel" type="tel" placeholder="Téléphone (ex : 0555 12 34 56)" autocomplete="off">
+      <button class="primary" type="submit">Ajouter le client</button>
+    </form>
+    <input id="search" type="search" placeholder="Chercher un client par nom ou numéro">
+  </section>
+
+  <section class="panel relance" id="relancePanel" hidden>
+    <h2>Clients à faire revenir</h2>
+    <p class="sub" style="margin:0">Pas venus depuis longtemps. Envoie-leur le message WhatsApp ci-dessous.</p>
+    <textarea class="msg" id="msgTpl"></textarea>
+    <div id="relanceList"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Tous les clients</h2>
+    <div id="list"><p class="empty" id="loading">Chargement des clients…</p></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let db = null, clients = [], cfg = { nom: 'Ma boutique mobile', objectif: 10, cadeau: 'une coque ou un verre trempé offert', jours: 30 };
+const DAY = 86400000;
+
+function toast(t) { const el = $('toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2200); }
+function intl(tel) { let d = String(tel || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '213' + d.slice(1); return d; }
+function daysSince(iso) { return iso ? Math.floor((Date.now() - new Date(iso).getTime()) / DAY) : 999; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+function defaultMsg() { return `Salam {nom} ! Ça fait un moment 😊 Chez ${cfg.nom}, il te reste {reste} achat(s) avant ${cfg.cadeau}. Passe nous voir cette semaine !`; }
+
+function renderCfg() {
+  $('shopName').textContent = cfg.nom;
+  $('rule').textContent = `${cfg.objectif} achats = ${cfg.cadeau}`;
+  $('setName').value = cfg.nom; $('setGoal').value = cfg.objectif; $('setGift').value = cfg.cadeau; $('setDays').value = cfg.jours;
+  if (!$('msgTpl').dataset.touched) $('msgTpl').value = defaultMsg();
+}
+
+function stampsHtml(n) {
+  let h = '';
+  for (let i = 0; i < cfg.objectif; i++) h += i === cfg.objectif - 1 && n < cfg.objectif ? `<span class="dot gift" title="Cadeau">★</span>` : `<span class="dot ${i < n ? 'on' : ''}">${i < n ? '✓' : ''}</span>`;
+  return h;
+}
+
+function clientRow(c, relance) {
+  const n = c.tampons || 0, full = n >= cfg.objectif, d = daysSince(c.dernier);
+  const reste = Math.max(cfg.objectif - n, 0);
+  let extra = '';
+  if (relance) {
+    const txt = $('msgTpl').value.replace(/\{nom\}/g, c.nom).replace(/\{reste\}/g, reste);
+    extra = `<a class="wa" href="https://wa.me/${intl(c.tel)}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">Ouvrir WhatsApp</a>
+             <button type="button" data-copy="${c.id}">Copier le message</button>`;
+  } else {
+    extra = full ? `<button class="primary" type="button" data-gift="${c.id}">Cadeau remis</button>`
+                 : `<button class="primary" type="button" data-stamp="${c.id}">+1 achat</button>`;
+    extra += `<button type="button" data-undo="${c.id}" ${n ? '' : 'disabled'} aria-label="Retirer un achat">−1</button>`;
+  }
+  return `<div class="client">
+    <div class="who"><b>${esc(c.nom)} ${full ? '<span class="pill ok">Cadeau à remettre</span>' : ''} ${!relance && d >= cfg.jours && c.dernier ? `<span class="pill">${d} j sans visite</span>` : ''}</b>
+      <small>${esc(c.tel)} · ${n}/${cfg.objectif} achats · ${c.dernier ? (d === 0 ? "venu aujourd'hui" : `dernière visite il y a ${d} j`) : 'jamais venu'}</small></div>
+    <div class="stamps" aria-label="${n} achats sur ${cfg.objectif}">${stampsHtml(Math.min(n, cfg.objectif))}</div>
+    <div class="actions">${extra}</div></div>`;
+}
+
+function render() {
+  const q = $('search').value.trim().toLowerCase(), qd = q.replace(/\D/g, '');
+  const shown = clients.filter(c => !q || c.nom.toLowerCase().includes(q) || (qd && String(c.tel).replace(/\D/g, '').includes(qd)));
+  $('list').innerHTML = shown.length ? shown.map(c => clientRow(c, false)).join('')
+    : `<p class="empty">${clients.length ? 'Aucun client ne correspond à ta recherche.' : 'Aucun client pour l’instant. Ajoute le premier avec son nom et son numéro dans « Passage en caisse ».'}</p>`;
+  const rel = clients.filter(c => c.dernier && daysSince(c.dernier) >= cfg.jours);
+  $('relancePanel').hidden = !rel.length;
+  $('relanceList').innerHTML = rel.map(c => clientRow(c, true)).join('');
+  $('sClients').textContent = clients.length;
+  $('sGifts').textContent = clients.reduce((s, c) => s + (c.cadeaux || 0), 0);
+  $('sRelance').textContent = rel.length;
+}
+
+async function write(fn, ok) {
+  if (!db) { toast('Connexion à la base indisponible. Recharge la page.'); return; }
+  try { await fn(); if (ok) toast(ok); } catch (e) { toast(e?.code === 'not_granted' ? 'Tu n’as pas le droit de modifier cette carte.' : 'Échec de l’enregistrement. Réessaie.'); }
+}
+const byId = (id) => clients.find(c => c.id === id);
+
+$('addForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nom = $('fName').value.trim(), tel = $('fTel').value.trim();
+  if (!nom || tel.replace(/\D/g, '').length < 8) { toast('Entre un nom et un numéro de téléphone complet.'); return; }
+  if (clients.some(c => intl(c.tel) === intl(tel))) { toast('Ce numéro est déjà enregistré.'); $('search').value = tel; render(); return; }
+  write(async () => {
+    await db.collection('clients').add({ nom, tel, tampons: 1, cadeaux: 0, dernier: new Date().toISOString(), cree: new Date().toISOString() });
+    $('fName').value = ''; $('fTel').value = '';
+  }, `${nom} ajouté avec son premier achat`);
+});
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.stamp) { const c = byId(b.dataset.stamp); write(() => db.doc('clients/' + c.id).update({ tampons: (c.tampons || 0) + 1, dernier: new Date().toISOString() }), `Achat ajouté pour ${c.nom}`); }
+  if (b.dataset.undo) { const c = byId(b.dataset.undo); write(() => db.doc('clients/' + c.id).update({ tampons: Math.max((c.tampons || 0) - 1, 0) }), 'Achat retiré'); }
+  if (b.dataset.gift) { const c = byId(b.dataset.gift); write(() => db.doc('clients/' + c.id).update({ tampons: 0, cadeaux: (c.cadeaux || 0) + 1, dernier: new Date().toISOString() }), `Cadeau remis à ${c.nom}, carte remise à zéro`); }
+  if (b.dataset.copy) {
+    const c = byId(b.dataset.copy), reste = Math.max(cfg.objectif - (c.tampons || 0), 0);
+    const txt = $('msgTpl').value.replace(/\{nom\}/g, c.nom).replace(/\{reste\}/g, reste);
+    navigator.clipboard.writeText(txt).then(() => toast('Message copié'), () => toast('Copie impossible : sélectionne le texte du modèle.'));
+  }
+});
+
+$('search').addEventListener('input', render);
+$('msgTpl').addEventListener('input', () => { $('msgTpl').dataset.touched = '1'; render(); });
+$('toggleSettings').addEventListener('click', () => { $('settingsPanel').hidden = !$('settingsPanel').hidden; });
+$('saveSettings').addEventListener('click', () => {
+  const next = { nom: $('setName').value.trim() || cfg.nom, objectif: Math.min(Math.max(parseInt($('setGoal').value) || 10, 3), 20),
+    cadeau: $('setGift').value.trim() || cfg.cadeau, jours: Math.min(Math.max(parseInt($('setDays').value) || 30, 7), 180) };
+  write(() => db.doc('config/boutique').set(next), 'Réglages enregistrés');
+});
+
+renderCfg(); render();
+(async () => {
+  const timer = setTimeout(() => { $('loading') && ($('loading').textContent = 'La base de données ne répond pas. Vérifie ta connexion à claude.ai.'); }, 10000);
+  db = await window.claude?.use?.('db');
+  if (!db) { clearTimeout(timer); $('list').innerHTML = '<p class="empty">Connecte-toi à claude.ai pour gérer les cartes de fidélité.</p>'; return; }
+  db.doc('config/boutique').onSnapshot((s) => { if (s.exists) cfg = { ...cfg, ...s.data() }; renderCfg(); render(); });
+  db.collection('clients').orderBy('dernier', 'desc').onSnapshot((snap) => {
+    clearTimeout(timer); clients = snap.docs.map(d => ({ id: d.id, ...d.data() })); render();
+  }, () => { clearTimeout(timer); $('list').innerHTML = '<p class="empty">Impossible de lire les clients. Recharge la page.</p>'; });
+})();
+</script>
