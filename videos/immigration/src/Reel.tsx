@@ -6,7 +6,7 @@ import {Leaf, RED} from './Immigration';
 export type Phrase = {debut: number; fin: number; texte: string};
 export type ReelProps = {
   fond: string; fondEstVideo?: boolean; titre: string; sousTitre: string; marque: string;
-  voix?: string; phrases: Phrase[];
+  voix?: string; phrases: Phrase[]; duree?: number; ligne?: boolean;
 };
 
 const FONT = 'Inter, "DejaVu Sans", Arial, sans-serif';
@@ -20,21 +20,21 @@ const Fond: React.FC<{src: string; video?: boolean}> = ({src, video}) => {
   return video ? <OffthreadVideo src={staticFile(src)} muted style={st} /> : <Img src={staticFile(src)} style={st} />;
 };
 
-const SousTitre: React.FC<{p: Phrase}> = ({p}) => {
+const SousTitre: React.FC<{p: Phrase; ligne?: boolean}> = ({p, ligne}) => {
   const f = useCurrentFrame(), {fps} = useVideoConfig();
   const dur = (p.fin - p.debut) * fps;
   const n = Math.round(interpolate(f, [0, dur * 0.85], [0, p.texte.length], {extrapolateRight: 'clamp'}));
   const blink = Math.floor(f / 8) % 2 === 0;
   return (
-    <div style={{position: 'absolute', top: 1020, left: 70, right: 70, textAlign: 'center', fontFamily: FONT, fontSize: 62, fontWeight: 800,
-      color: '#fff', textShadow: shadow, lineHeight: 1.3, direction: /[؀-ۿ]/.test(p.texte) ? 'rtl' : 'ltr'}}>
+    <div style={{position: 'absolute', top: ligne ? 1180 : 1020, left: 70, right: 70, textAlign: 'center', fontFamily: FONT, fontSize: ligne ? 58 : 62, fontWeight: 800,
+      color: '#fff', textShadow: shadow, lineHeight: 1.3, whiteSpace: ligne ? 'nowrap' : 'normal', direction: /[؀-ۿ]/.test(p.texte) ? 'rtl' : 'ltr'}}>
       {p.texte.slice(0, n)}
       <span style={{display: 'inline-block', width: 14, height: 64, background: '#fff', marginInline: 8, verticalAlign: 'middle', opacity: blink ? 1 : 0}} />
     </div>
   );
 };
 
-export const Reel: React.FC<ReelProps> = ({fond, fondEstVideo, titre, sousTitre, marque, voix, phrases}) => {
+export const Reel: React.FC<ReelProps> = ({fond, fondEstVideo, titre, sousTitre, marque, voix, phrases, ligne}) => {
   const {fps} = useVideoConfig();
   return (
     <AbsoluteFill style={{background: '#000', overflow: 'hidden'}}>
@@ -57,7 +57,7 @@ export const Reel: React.FC<ReelProps> = ({fond, fondEstVideo, titre, sousTitre,
         <div style={{fontFamily: FONT, fontSize: 58, fontWeight: 800, color: '#fff', textShadow: shadow, direction: 'rtl'}}>{sousTitre}</div>
       </div>
       {phrases.map((p, i) => (
-        <Sequence key={i} from={Math.round(p.debut * fps)} durationInFrames={Math.round((p.fin - p.debut) * fps) + 10}><SousTitre p={p} /></Sequence>
+        <Sequence key={i} from={Math.round(p.debut * fps)} durationInFrames={Math.round((p.fin - p.debut) * fps) + (ligne ? 0 : 10)}><SousTitre p={p} ligne={ligne} /></Sequence>
       ))}
       {voix ? <Audio src={staticFile(voix)} /> : null}
     </AbsoluteFill>
