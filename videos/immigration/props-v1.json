@@ -1,5 +1,5 @@
 {
- "fond": "fond-reel.png",
+ "fond": "fond-v1.mp4",
  "titre": "Entrée express",
  "sousTitre": "بالمختصر المفيد",
  "marque": "TA MARQUE",
@@ -92,5 +92,6 @@
    "fin": 33.0,
    "texte": "نقولك شكون يقدر يبوسطولي."
   }
- ]
+ ],
+ "fondEstVideo": true
 }
